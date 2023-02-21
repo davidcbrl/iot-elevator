@@ -19,6 +19,7 @@ const int displayDP = 7;
 
 int floorDistance = 64 * 40;
 int currentFloor = 1;
+int bluetoothAction = 0;
 
 void displayFloor(int floor) {
     if (floor == 0) {
@@ -58,6 +59,8 @@ void displayFloor(int floor) {
 
 void setup()
 {
+    Serial1.begin(9600);
+
     stepper.setSpeed(stepperSpeed);
 
     pinMode(buttonUp, INPUT);
@@ -75,24 +78,37 @@ void setup()
 
 void loop()
 {
-    if ((digitalRead(buttonUp) == HIGH) && (currentFloor == 1)) {
+    if (Serial1.available()) {
+        bluetoothAction = Serial1.read();
+    }
+
+    if (
+        (digitalRead(buttonUp) == HIGH || bluetoothAction == 50)
+        && (currentFloor == 1)
+    ) {
         displayFloor(0);
         for (int i = 0; i < floorDistance; i += stepperStep) {
             stepper.step(stepperStep);
         }
         currentFloor = 2;
         displayFloor(currentFloor);
+        Serial1.write(currentFloor);
+        bluetoothAction = 0;
         delay(500);
     }
 
-    if ((digitalRead(buttonDown) == HIGH) && (currentFloor == 2)) {
+    if (
+        (digitalRead(buttonDown) == HIGH || bluetoothAction == 49)
+        && (currentFloor == 2)
+    ) {
         displayFloor(0);
         for (int i = 0; i < floorDistance; i += stepperStep) {
             stepper.step(-stepperStep);
         }
         currentFloor = 1;
         displayFloor(currentFloor);
+        Serial1.write(currentFloor);
+        bluetoothAction = 0;
         delay(500);
     }
-
 }
